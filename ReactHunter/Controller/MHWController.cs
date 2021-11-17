@@ -19,14 +19,15 @@ namespace ReactHunter.Controller
                 var teams = OverlayViewModel.Instance.TeamWidget.Context.Players.ToArray();
                 var monsters = OverlayViewModel.Instance.MonsterWidget.Context.Monsters.ToArray();
 
-                
-                return Response.AsJson(new { 
-                    isSuccess=true,
-                    date=DateTime.Now.ToString(),
-                    data=new 
+
+                return Response.AsJson(new
+                {
+                    isSuccess = true,
+                    date = DateTime.Now.ToString(),
+                    data = new
                     {
-                        players=teams,
-                        monsters=monsters
+                        players = teams,
+                        monsters = monsters
                     }
                 });
             });

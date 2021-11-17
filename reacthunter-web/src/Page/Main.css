@@ -1,3 +1,23 @@
 .ant-collapse-content > .ant-collapse-content-box{
     padding:0px !important;
 }
+
+.ant-card-grid {
+	box-shadow: 0px 0px #000000;
+	-webkit-box-shadow: 0px 0px #000000;
+}
+
+.ant-card-grid-hoverable {
+	box-shadow: 0px 0px #000000;
+	-webkit-box-shadow: 0px 0px #000000;
+}
+
+.ant-card-grid-hoverable:hover {
+	box-shadow: 0px 0px #000000;
+	-webkit-box-shadow: 0px 0px #000000;
+}
+
+div {
+	background: none repeat scroll 0 0 #333333;
+	color: white;
+}

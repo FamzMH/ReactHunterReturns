@@ -87,17 +87,27 @@ export default class Main extends React.Component<IProps, IState>{
 
     doInterval = async () => {
         let _r = await Api.GetData();
-        if (_r.isSuccess) {
+
+        var find = "NaN";
+        var re = new RegExp(find, 'g');
+
+        _r = _r.replace(re, "0");
+
+        console.log(_r);
+        let r = JSON.parse(_r);
+
+        if (r.isSuccess) {
             this.setState({
-                apiData: _r.data,
+                apiData: r.data,
                 preApiData: this.state.apiData
             })
         }
-        else {
-            message.error({
-                content: "Data Get Failure!"
-            })
-        }
+        //else {
+        //    message.error({
+        //        content: "Data Get Failure!"
+        //    })
+        //}
+		
     }
 
     getStyle = () => {
@@ -180,7 +190,7 @@ export default class Main extends React.Component<IProps, IState>{
                             <div style={{ display: "flex" }}>
                                 <span style={fontStyle}>{m.name} ({m.health.current}/{m.health.max})  {getMonsterCrown(m)}</span>
                                 <div style={{ flexGrow: 1, textAlign: "right" }}>
-                                    <span style={{ color: m.health.fraction <= 0.3 ? "red" : m.health.fraction == 1 ? "green" : "black", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{Math.floor(m.health.fraction * 100)}%</span>
+                                    <span style={{ color: "white", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{Math.floor(m.health.fraction * 100)}%</span>
                                 </div>
 
                             </div>
@@ -204,7 +214,7 @@ export default class Main extends React.Component<IProps, IState>{
                                             type="circle"
                                             percent={p.health.fraction * 100}
                                             width={65}
-                                            format={percent => (<span style={{ color: "black" }}>{Math.floor(p.health.fraction * 100)}%</span>)}
+                                            format={percent => (<span style={{ color: "white" }}>{Math.floor(p.health.fraction * 100)}%</span>)}
                                         />
                                     </Col>
                                 );
@@ -235,7 +245,7 @@ export default class Main extends React.Component<IProps, IState>{
                 }
             });
             return data.map((p: any, index: number) => {
-                if (p.name == "未知玩家") {
+                if (p.name == "未知玩家") { 
                     return null;
                 }
                 else {
@@ -247,7 +257,7 @@ export default class Main extends React.Component<IProps, IState>{
                                     {index == _tempIndex ? (<Icon style={{ color: "red", marginLeft: 10, fontSize: this.getStyle().activeTeamIconSize }} type="chrome" spin={true} />) : null}
                                 </div>
                                 <div style={{ flexGrow: 1, textAlign: "right" }}>
-                                    <span style={{ color: "black", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{p.barFraction * 100}%</span>
+                                    <span style={{ color: "white", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{p.barFraction * 100}%</span>
                                 </div>
                             </div>
                             <Progress
@@ -259,7 +269,7 @@ export default class Main extends React.Component<IProps, IState>{
                         </div>
                     )
                 }
-            });
+			});
         }
 
         let defaultFont = {
@@ -285,10 +295,10 @@ export default class Main extends React.Component<IProps, IState>{
             }
         }
         return (
-            <Layout className="layout" style={{ height: "100vh" }}>
-                <Content style={{ padding: '0px 10px', height: "100%" }}>
-                    <div style={{ background: '#fff', padding: 10, minHeight: "100%" }}>
-                        <div style={{ fontWeight: "bold", fontSize: "20px", position: "absolute", margin: "0px 10px" }}>
+            <Layout className="layout" style={{ height: "100vh", color: "rgb(255, 255, 255)", background: "rgb(51, 51, 51) none repeat scroll 0% 0%" }}>
+                <Content style={{ padding: '10px', height: "100%" }}>
+                    <div style={{ color: "rgb(255, 255, 255)", background: "rgb(51, 51, 51) none repeat scroll 0% 0%", padding: 10, minHeight: "100%" }}>
+                        <div style={{ color: "white", fontWeight: "bold", fontSize: "20px", position: "absolute", margin: "0px 10px", zIndex:9999 }}>
                             React Hunter
                             <ButtonGroup style={{ marginLeft: 20, zIndex: 9999 }}>
                                 <Button type="primary" icon="zoom-in" onClick={e => { onZoomChange(true) }} />
@@ -297,13 +307,13 @@ export default class Main extends React.Component<IProps, IState>{
                         </div>
                         <Row>
                             <Col lg={12} style={{ padding: 10 }}>
-                                <Divider orientation="right">Monster</Divider>
+                                <Divider orientation="right" style={{ color: 'white' }}>Monster</Divider>
                                 <div>
                                     {getMonsters()}
                                 </div>
                             </Col>
                             <Col lg={12} style={{ padding: 10 }}>
-                                <Divider orientation="right">Team Damage</Divider>
+                                <Divider orientation="right" style={{ color: 'white' }}>Team Damage</Divider>
                                 <div>
                                     {getTeam()}
                                 </div>

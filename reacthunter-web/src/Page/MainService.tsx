@@ -6,7 +6,7 @@ export async function GetData(): Promise<any> {
         let _monsters: Array<any> = [];
         _players.push({
             index: 0,
-            name: "连殇",
+            name: "Bagdanaav",
             damage: 1236,
             damageFraction: 1,
             barFraction: 0.3
@@ -14,11 +14,19 @@ export async function GetData(): Promise<any> {
 
         _players.push({
             index: 0,
-            name: "蓝白",
+            name: "Yung Bussa",
             damage: 2345,
             damageFraction: 1,
             barFraction: 0.7
         });
+		
+		_players.push({
+			index: 0,
+			name: "Master Splinter",
+			damage: 1337,
+			damageFraction: 1,
+			barFraction: 0.5
+		});
 
         _monsters.push({
             name: "雌火龙",
@@ -145,11 +153,11 @@ export async function GetData(): Promise<any> {
             "crown": 2,
         })
         _monsters.push({
-            name: "黑狼鸟",
+            name: "Mike Wazowski",
             "address": 4961815328,
             health: {
-                max: 2296,
-                current: 2296,
+                max: 10000000000,
+                current: 1,
                 fraction: 0.7
             },
             "parts": [{
@@ -253,12 +261,12 @@ export async function GetData(): Promise<any> {
                 "isRemovable": false,
                 "health": {
                     "max": 220,
-                    "current": 220,
-                    "fraction": 1,
+                    "current": 110,
+                    "fraction": 0.5,
                     "angle": 359.999,
                     "shouldCapCurrent": false
                 },
-                "timesBrokenCount": 0,
+                "timesBrokenCount": 1,
                 "name": "Tail",
                 "groupId": "Part",
                 "isVisible": false,
@@ -269,22 +277,22 @@ export async function GetData(): Promise<any> {
                 "index": 0,
                 "groupId": "StatusEffect",
                 "buildup": {
-                    "max": 1.401298E-45,
-                    "current": 1.401298E-45,
-                    "fraction": 1,
+                    "max": 1000,
+                    "current": 200,
+                    "fraction": 0.2,
                     "angle": 359.999,
                     "shouldCapCurrent": true
                 },
                 "duration": {
-                    "max": 1.401298E-45,
-                    "current": 0,
-                    "fraction": 0,
-                    "angle": 0,
+                    "max": 2,
+                    "current": 1,
+                    "fraction": 0.5,
+                    "angle": 359.999,
                     "shouldCapCurrent": true
                 },
-                "timesActivatedCount": 860356608,
+                "timesActivatedCount": 2,
                 "name": "Poison",
-                "isVisible": false,
+                "isVisible": true,
                 "initialTime": "2020-01-27T06:03:56.0046962+00:00",
                 "lastChangedTime": null
             }, {
