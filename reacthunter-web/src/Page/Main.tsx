@@ -93,7 +93,6 @@ export default class Main extends React.Component<IProps, IState>{
 
         _r = _r.replace(re, "0");
 
-        console.log(_r);
         let r = JSON.parse(_r);
 
         if (r.isSuccess) {
