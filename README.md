@@ -17,3 +17,4 @@ Hit "Run" in the top toolbar and wait for VS to finishing building the project. 
 
 # TODO
 1. Make it look nice
+2. Add player widget values (e.g. remaining mantle time, current buffs/nerfs etc)
