@@ -4,6 +4,73 @@ export async function GetData(): Promise<any> {
     if (Config.fakeApi) {
         let _players: Array<any> = [];
         let _monsters: Array<any> = [];
+        let _player: Array<any> = [];
+        _player.push({
+            "index": 75,
+            "time": {
+                "max": 1.401298e-45,
+                "current": 1.401298e-45,
+                "fraction": 1,
+                "angle": 359.999,
+                "shouldCapCurrent": false
+            },
+            "isConditionPassed": true,
+            "groupId": "Debuff",
+            "name": "Blastscourge",
+            "isVisible": true
+        });
+        _player.push({
+            "index": 76,
+            "time": {
+                "max": 239.9936,
+                "current": 231.9615,
+                "fraction": 0.966532,
+                "angle": 347.9505,
+                "shouldCapCurrent": false
+            },
+            "isConditionPassed": true,
+            "groupId": "Buff",
+            "name": "Dash Juice",
+            "isVisible": true
+        });
+        _player.push({
+            "index": 76,
+            "time": {
+                "max": 239.9936,
+                "current": 59.9615,
+                "fraction": 0.966532,
+                "angle": 347.9505,
+                "shouldCapCurrent": false
+            },
+            "isConditionPassed": true,
+            "groupId": "Buff",
+            "name": "Roids",
+            "isVisible": true
+        });
+        _player.push({
+            "index": 76,
+            "time": {
+                "max": 239.9936,
+                "current": 1059.9615,
+                "fraction": 0.966532,
+                "angle": 347.9505,
+                "shouldCapCurrent": false
+            },
+            "isConditionPassed": true,
+            "groupId": "Debuff",
+            "name": "STI",
+            "isVisible": true
+        });
+        _player.push({
+            "index": 86,
+            "time": {
+                "current": 9999
+            },
+            "isConditionPassed": true,
+            "groupId": "Buff",
+            "name": "Mega Demondrug",
+            "isVisible": true
+        });
         _players.push({
             index: 0,
             name: "Bagdanaav",
@@ -414,7 +481,8 @@ export async function GetData(): Promise<any> {
                 date: "2020/1/27 14:04:05",
                 data: {
                     players: _players,
-                    monsters: _monsters
+                    monsters: _monsters,
+                    player: _player
                 }
             });
         });

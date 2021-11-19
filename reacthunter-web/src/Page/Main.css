@@ -17,6 +17,10 @@
 	-webkit-box-shadow: 0px 0px #000000;
 }
 
+.ant-statistic-title {
+	color: white;
+}
+
 div {
 	background: none repeat scroll 0 0 #333333;
 	color: white;

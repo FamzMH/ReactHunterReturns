@@ -2,6 +2,7 @@ import React from 'react';
 import { Layout, Menu, Breadcrumb, message, Progress, Divider, Icon, Row, Col, Collapse, Statistic, Card, Button } from 'antd';
 import * as Api from './MainService';
 import './Main.css'
+import Config from '../Config';
 const { Header, Content, Footer } = Layout;
 const { Panel } = Collapse;
 const ButtonGroup = Button.Group;
@@ -87,13 +88,22 @@ export default class Main extends React.Component<IProps, IState>{
 
     doInterval = async () => {
         let _r = await Api.GetData();
+        let r = _r;
 
-        var find = "NaN";
-        var re = new RegExp(find, 'g');
+        if (!Config.fakeApi) {
+            var find = "NaN";
+            var re = new RegExp(find, 'g');
 
-        _r = _r.replace(re, "0");
+            try {
+                _r = _r.replace(re, "0");
+            } catch (TypeError) {
+                return;
+            }
 
-        let r = JSON.parse(_r);
+            r = JSON.parse(_r);
+        }
+
+        console.log(r.data.player);
 
         if (r.isSuccess) {
             this.setState({
@@ -271,6 +281,57 @@ export default class Main extends React.Component<IProps, IState>{
 			});
         }
 
+        let getPlayer = () => {
+            if (!this.state.apiData || !this.state.apiData.player) {
+                return null;
+            }
+            var data = this.state.apiData.player;
+            const { Countdown } = Statistic;
+            return data.map((se: any, index: number) => {
+                if (se.time === null) {
+                    // To handle status effects like Mega Demondrug
+                    se.time = {"current": 9999};
+                }
+                if (Math.round(se.time.current) <= 1) {
+                    return null;
+                } else if (se.time.current === 9999) {
+                    return (
+                       <div key={se.name} style={{ height: this.getStyle().teamHeight }}>
+                           <div style={{ display: "flex" }}>
+                               <div>
+                                   <span style={{ fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{se.name}</span>
+                               </div>
+                           </div>
+                       </div>
+                    )
+                }
+                else if (se.groupId === "Debuff") {
+                    return (
+                       <div key={se.name} style={{ height: this.getStyle().teamHeight }}>
+                           <div style={{ display: "flex" }}>
+                               <div>
+                                   <span style={{ color: "red", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{se.name}</span>
+                                   <Countdown value={Date.now() + 1000 * Math.round(se.time.current)} valueStyle={{ color: "red", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }} format="mm:ss" />
+                               </div>
+                            </div>
+                       </div>
+                    )
+                }
+                else {
+                    return (
+                        <div key={se.name} style={{ height: this.getStyle().teamHeight }}>
+                            <div style={{ display: "flex" }}>
+                                <div>
+                                    <span style={{ color: "white", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{se.name}</span>
+                                    <Countdown value={Date.now() + 1000 * Math.round(se.time.current)} valueStyle={{ color: "white", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }} format="mm:ss" />
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
+            });
+        }
+
         let defaultFont = {
             fontSize: 10
         }
@@ -316,6 +377,16 @@ export default class Main extends React.Component<IProps, IState>{
                                 <div>
                                     {getTeam()}
                                 </div>
+                                <Divider orientation="right" style={{ color: 'white' }}>Status Effects</Divider>
+                                <div>
+                                    {getPlayer()}
+                                </div>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col lg={12} style={{ padding: 10 }}></Col>
+                            <Col lg={12} style={{ padding: 10 }}>
+                                
                             </Col>
                         </Row>
                     </div>

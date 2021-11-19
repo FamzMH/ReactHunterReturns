@@ -18,6 +18,7 @@ namespace ReactHunter.Controller
             Get("/get", x => {
                 var teams = OverlayViewModel.Instance.TeamWidget.Context.Players.ToArray();
                 var monsters = OverlayViewModel.Instance.MonsterWidget.Context.Monsters.ToArray();
+                var player = OverlayViewModel.Instance.PlayerWidget.Context.StatusEffects.ToArray();
 
 
                 return Response.AsJson(new
@@ -27,7 +28,8 @@ namespace ReactHunter.Controller
                     data = new
                     {
                         players = teams,
-                        monsters = monsters
+                        monsters = monsters,
+                        player = player
                     }
                 });
             });
