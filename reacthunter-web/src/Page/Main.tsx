@@ -21,11 +21,46 @@ interface IZoomStyle {
     defaultProgressWidth: number;
     activeProgressWidth: number;
     teamHeight: number;
+    seHeight: number;
 }
+
+let StatusEffects = new Map<string, number>();
+
+let PlayerDPS = new Map<string, number>();
+
+function getMinutes(seconds: number) {
+    return Math.floor(seconds / 60);
+}
+
+function getSeconds(seconds: number) {
+    var minutes = getMinutes(seconds);
+    var answer = seconds - 60 * minutes;
+    if (answer < 10) {
+        return "0" + answer;
+    }
+    return answer;
+}
+
+// TODO:
+// Reset timers on quest complete (Done?)
+// Fix percents on player damage (calculation and rounding) (Done?)
+// Fix rounding on monster health (Done?)
+// Add numbers to monster parts
+// Add quest timer
+// Add more columns to status effects
+// Add DPS
+
+
 export default class Main extends React.Component<IProps, IState>{
     Interval: NodeJS.Timeout | undefined;
+    SEInterval: NodeJS.Timeout | undefined;
     activeMonsterIndex: number;
     zoomStyle: Array<IZoomStyle>;
+    lastUpdateTime: number;
+    isInQuest: boolean;
+    clearedSE: boolean;
+    questStartTime: number;
+    secondsElapsed: number;
     constructor(props: IProps) {
         super(props);
         this.state = {
@@ -34,6 +69,12 @@ export default class Main extends React.Component<IProps, IState>{
             zoomLevel: 1
         }
         this.activeMonsterIndex = 0;
+        this.lastUpdateTime = 0;
+        this.isInQuest = false;
+        // Keeps track of whether or not status effects section needs clearing
+        this.clearedSE = true;
+        this.questStartTime = 0;
+        this.secondsElapsed = 0;
         this.zoomStyle = [
             {
                 defaultFontSize: 10,
@@ -41,7 +82,8 @@ export default class Main extends React.Component<IProps, IState>{
                 activeTeamIconSize: 14,
                 defaultProgressWidth: 8,
                 activeProgressWidth: 8,
-                teamHeight: 50
+                teamHeight: 50,
+                seHeight: 25
             },
             {
                 defaultFontSize: 14,
@@ -49,7 +91,8 @@ export default class Main extends React.Component<IProps, IState>{
                 activeTeamIconSize: 18,
                 defaultProgressWidth: 10,
                 activeProgressWidth: 10,
-                teamHeight: 60
+                teamHeight: 60,
+                seHeight: 30
             },
             {
                 defaultFontSize: 18,
@@ -57,7 +100,8 @@ export default class Main extends React.Component<IProps, IState>{
                 activeTeamIconSize: 22,
                 defaultProgressWidth: 12,
                 activeProgressWidth: 12,
-                teamHeight: 70
+                teamHeight: 70,
+                seHeight: 35
             },
             {
                 defaultFontSize: 22,
@@ -65,7 +109,8 @@ export default class Main extends React.Component<IProps, IState>{
                 activeTeamIconSize: 26,
                 defaultProgressWidth: 16,
                 activeProgressWidth: 16,
-                teamHeight: 80
+                teamHeight: 80,
+                seHeight: 40
             },
             {
                 defaultFontSize: 26,
@@ -73,17 +118,23 @@ export default class Main extends React.Component<IProps, IState>{
                 activeTeamIconSize: 30,
                 defaultProgressWidth: 20,
                 activeProgressWidth: 20,
-                teamHeight: 90
+                teamHeight: 90,
+                seHeight: 45
             }
         ];
     }
+
     componentDidMount() {
         this.Interval = setInterval(() => {
             this.doInterval();
         }, 500);
+        this.SEInterval = setInterval(() => {
+            this.doSEInterval();
+        }, 1000);
     }
     componentWillUnmount() {
         clearInterval(this.Interval!);
+        clearInterval(this.SEInterval!);
     }
 
     doInterval = async () => {
@@ -103,7 +154,7 @@ export default class Main extends React.Component<IProps, IState>{
             r = JSON.parse(_r);
         }
 
-        console.log(r.data.player);
+        //console.log(r.data.player);
 
         if (r.isSuccess) {
             this.setState({
@@ -117,6 +168,46 @@ export default class Main extends React.Component<IProps, IState>{
         //    })
         //}
 		
+    }
+
+    // lastUpdateTime tracks the last time data was pushed successfully from Smart Hunter
+    doSEInterval = async () => {
+        var currentTime = Date.now();
+        if ((currentTime - this.lastUpdateTime) / 1000 > 2) {
+            // More than 2 seconds has elapsed (i.e. more than 4 rerenders or "API updates") since the last time lastUpdateTime was updates so we assume the player is not in a quest
+            // Therefore, we reset state for timers and status effects
+            this.isInQuest = false;
+            // Temporarily set this to false in case we need to clear currently active status effects timers
+            this.clearedSE = false;
+            this.lastUpdateTime = 0;
+            if (StatusEffects.size !== 0) {
+                StatusEffects.clear();
+                // Force a rerender by setting the state
+                this.setState({
+                    apiData: this.state.apiData,
+                    preApiData: this.state.preApiData
+                })
+                //console.log("clearedSE: " + this.clearedSE);
+            }
+            this.clearedSE = true;
+            if (this.questStartTime !== 0) {
+                this.questStartTime = 0;
+                this.secondsElapsed = 0;
+            }
+        } else {
+            if (this.questStartTime === 0) {
+                this.questStartTime = Date.now();
+            } else {
+                this.secondsElapsed = Math.round((Date.now() - this.questStartTime) / 1000);
+            }
+            this.isInQuest = true;
+            this.clearedSE = true;
+        }
+        //console.log("Last update time " + this.lastUpdateTime);
+        
+        console.log("isInQuest: " + this.isInQuest);
+        console.log("Seconds elapsed in quest: " + this.secondsElapsed);
+        //console.log(this.clearedSE)
     }
 
     getStyle = () => {
@@ -197,9 +288,9 @@ export default class Main extends React.Component<IProps, IState>{
                     <Panel showArrow={false} key={String(index)} header={(
                         <div style={{ height: index == this.activeMonsterIndex ? this.getStyle().teamHeight - 20 : this.getStyle().teamHeight - 25 }}>
                             <div style={{ display: "flex" }}>
-                                <span style={fontStyle}>{m.name} ({m.health.current}/{m.health.max})  {getMonsterCrown(m)}</span>
+                                <span style={fontStyle}>{m.name} ({Math.round(m.health.current)}/{m.health.max})  {getMonsterCrown(m)}</span>
                                 <div style={{ flexGrow: 1, textAlign: "right" }}>
-                                    <span style={{ color: "white", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{Math.floor(m.health.fraction * 100)}%</span>
+                                    <span style={{ color: "white", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{Math.round(m.health.fraction * 100)}%</span>
                                 </div>
 
                             </div>
@@ -234,9 +325,14 @@ export default class Main extends React.Component<IProps, IState>{
                 )
             });
             return (
+                <div> 
+                <span style={{ color: "white", fontWeight: "bold", fontSize: "20px", position: "relative", zIndex: 9999 }}>
+                {"Quest timer: " + ((this.secondsElapsed === 0) ? "00:00" : getMinutes(this.secondsElapsed) + ":" + getSeconds(this.secondsElapsed))}
+                </span>
                 <Collapse accordion activeKey={String(this.activeMonsterIndex)}>
                     {monsterRender}
                 </Collapse>
+                </div>
             )
         }
 
@@ -245,6 +341,7 @@ export default class Main extends React.Component<IProps, IState>{
                 return null;
             }
             var data = this.state.apiData.players;
+            var teamDamage = 0;
             var _tempDamage = 0;
             var _tempIndex = 0;
             data.forEach((m: any, index: number) => {
@@ -252,6 +349,11 @@ export default class Main extends React.Component<IProps, IState>{
                     _tempDamage = m.damage;
                     _tempIndex = index;
                 }
+
+                //PlayerDPS.set(m.name, m.damage);
+            });
+            data.forEach((p: any, index: number) => {
+                teamDamage += p.damage;
             });
             return data.map((p: any, index: number) => {
                 if (p.name == "未知玩家") { 
@@ -262,17 +364,17 @@ export default class Main extends React.Component<IProps, IState>{
                         <div key={p.name} style={{ height: this.getStyle().teamHeight }}>
                             <div style={{ display: "flex" }}>
                                 <div>
-                                    <span style={{ fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{p.name} {p.damage}</span>
+                                    <span style={{ fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{p.name} {p.damage} { }</span>
                                     {index == _tempIndex ? (<Icon style={{ color: "red", marginLeft: 10, fontSize: this.getStyle().activeTeamIconSize }} type="chrome" spin={true} />) : null}
                                 </div>
                                 <div style={{ flexGrow: 1, textAlign: "right" }}>
-                                    <span style={{ color: "white", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{p.barFraction * 100}%</span>
+                                    <span style={{ color: "white", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{teamDamage === 0 ? 0 : Math.round((p.damage / teamDamage) * 100)}%</span>
                                 </div>
                             </div>
                             <Progress
                                 strokeWidth={this.getStyle().defaultProgressWidth}
                                 strokeColor={MonsterBarColor}
-                                percent={p.barFraction * 100}
+                                percent={teamDamage === 0 ? 0 : (p.damage / teamDamage) * 100}
                                 showInfo={false}
                             />
                         </div>
@@ -286,7 +388,18 @@ export default class Main extends React.Component<IProps, IState>{
                 return null;
             }
             var data = this.state.apiData.player;
+            if (this.clearedSE) {
+                data.forEach((se: any, index: number) => {
+                    if (se.time === null) {
+                        se.time = { "current": 9999 };
+                    }
+                    StatusEffects.set(se.name, se.time.current);
+                });
+            }
             const { Countdown } = Statistic;
+            if (this.clearedSE) {
+                this.lastUpdateTime = Date.now();
+            }
             return data.map((se: any, index: number) => {
                 if (se.time === null) {
                     // To handle status effects like Mega Demondrug
@@ -296,34 +409,36 @@ export default class Main extends React.Component<IProps, IState>{
                     return null;
                 } else if (se.time.current === 9999) {
                     return (
-                       <div key={se.name} style={{ height: this.getStyle().teamHeight }}>
+                        <div key={se.name} style={{ height: this.getStyle().seHeight }}>
                            <div style={{ display: "flex" }}>
-                               <div>
-                                   <span style={{ fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{se.name}</span>
+                                <div>
+                                    <span style={{ fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{se.name}</span>
                                </div>
                            </div>
                        </div>
                     )
                 }
                 else if (se.groupId === "Debuff") {
+                    // <Countdown key={this.isInQuest ? "0" : "1"} value={this.isInQuest ? Date.now() + 1000 * Math.round(se.time.current) : 0} valueStyle={{ color: "red", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }} format="mm:ss" />
+
                     return (
-                       <div key={se.name} style={{ height: this.getStyle().teamHeight }}>
+                        <div key={se.name} style={{ height: this.getStyle().seHeight }}>
                            <div style={{ display: "flex" }}>
                                <div>
-                                   <span style={{ color: "red", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{se.name}</span>
-                                   <Countdown value={Date.now() + 1000 * Math.round(se.time.current)} valueStyle={{ color: "red", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }} format="mm:ss" />
+                                    <span style={{ color: "red", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{se.name + " " + ((this.clearedSE) ? getMinutes(Math.round(StatusEffects.get(se.name)!)) + ":" + getSeconds(Math.round(StatusEffects.get(se.name)!)) : "00:00")}</span>
                                </div>
                             </div>
                        </div>
                     )
                 }
                 else {
+                    //<Countdown key={this.isInQuest ? "0" : "1"} value={this.isInQuest ? Date.now() + 1000 * Math.round(se.time.current) : 0} valueStyle={{ color: "white", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }} format="mm:ss" />
+
                     return (
-                        <div key={se.name} style={{ height: this.getStyle().teamHeight }}>
+                        <div key={se.name} style={{ height: this.getStyle().seHeight }}>
                             <div style={{ display: "flex" }}>
                                 <div>
-                                    <span style={{ color: "white", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{se.name}</span>
-                                    <Countdown value={Date.now() + 1000 * Math.round(se.time.current)} valueStyle={{ color: "white", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }} format="mm:ss" />
+                                    <span style={{ color: "white", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{se.name + " " + ((this.clearedSE) ? getMinutes(Math.round(StatusEffects.get(se.name)!)) + ":" + getSeconds(Math.round(StatusEffects.get(se.name)!)) : "00:00")}</span>
                                 </div>
                             </div>
                         </div>
@@ -369,6 +484,7 @@ export default class Main extends React.Component<IProps, IState>{
                             <Col lg={12} style={{ padding: 10 }}>
                                 <Divider orientation="right" style={{ color: 'white' }}>Monster</Divider>
                                 <div>
+
                                     {getMonsters()}
                                 </div>
                             </Col>
