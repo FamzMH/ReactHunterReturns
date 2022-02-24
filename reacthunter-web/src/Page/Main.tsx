@@ -49,6 +49,8 @@ function getSeconds(seconds: number) {
 // Add quest timer
 // Add more columns to status effects
 // Add DPS
+// Clear status effects on death
+// Subtract 2 seconds from quest timer on quest complete
 
 
 export default class Main extends React.Component<IProps, IState>{
@@ -389,11 +391,11 @@ export default class Main extends React.Component<IProps, IState>{
             }
             var data = this.state.apiData.player;
             if (this.clearedSE) {
+                StatusEffects = new Map<string, number>();
                 data.forEach((se: any, index: number) => {
-                    if (se.time === null) {
-                        se.time = { "current": 9999 };
-                    }
-                    StatusEffects.set(se.name, se.time.current);
+                    if (se.time !== null) {
+                        StatusEffects.set(se.name, se.time.current);
+                    } 
                 });
             }
             const { Countdown } = Statistic;
@@ -401,23 +403,22 @@ export default class Main extends React.Component<IProps, IState>{
                 this.lastUpdateTime = Date.now();
             }
             return data.map((se: any, index: number) => {
+                console.log("SE name: " + se.name);
+                // To handle status effects like Mega Demondrug
                 if (se.time === null) {
-                    // To handle status effects like Mega Demondrug
-                    se.time = {"current": 9999};
-                }
-                if (Math.round(se.time.current) <= 1) {
-                    return null;
-                } else if (se.time.current === 9999) {
                     return (
                         <div key={se.name} style={{ height: this.getStyle().seHeight }}>
-                           <div style={{ display: "flex" }}>
+                            <div style={{ display: "flex" }}>
                                 <div>
                                     <span style={{ fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{se.name}</span>
-                               </div>
-                           </div>
-                       </div>
+                                </div>
+                            </div>
+                        </div>
                     )
                 }
+                else if (Math.round(se.time.current) <= 1) {
+                    return null;
+                } 
                 else if (se.groupId === "Debuff") {
                     // <Countdown key={this.isInQuest ? "0" : "1"} value={this.isInQuest ? Date.now() + 1000 * Math.round(se.time.current) : 0} valueStyle={{ color: "red", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }} format="mm:ss" />
 
