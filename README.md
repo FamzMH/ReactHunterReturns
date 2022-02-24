@@ -14,7 +14,3 @@ Once NPM is installed, open the project in Visual Studio 2019. The project file 
 
 ## 4. Run
 Hit "Run" in the top toolbar and wait for VS to finishing building the project. If the React Hunter console window complains about anything (e.g. pattern scanning failing) you most likely didn't complete step 3 properly.
-
-# TODO
-1. Make it look nice
-
