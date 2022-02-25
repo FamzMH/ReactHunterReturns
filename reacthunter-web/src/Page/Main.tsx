@@ -24,8 +24,6 @@ interface IZoomStyle {
     seHeight: number;
 }
 
-let StatusEffects = new Map<string, number>();
-
 let PlayerDPS = new Map<string, number>();
 
 function getMinutes(seconds: number) {
@@ -46,11 +44,14 @@ function getSeconds(seconds: number) {
 // Fix percents on player damage (calculation and rounding) (Done?)
 // Fix rounding on monster health (Done?)
 // Add numbers to monster parts
-// Add quest timer
-// Add more columns to status effects
+// Add quest timer (Done?)
+// Add more columns to status effects (buffs, mantles, debuffs)
 // Add DPS
-// Clear status effects on death
+// Clear status effects on death (Done?)
 // Subtract 2 seconds from quest timer on quest complete
+// Add scrollbar to console window
+// Add option to automatically open browser window on start
+// Add option to automatically open game on start
 
 
 export default class Main extends React.Component<IProps, IState>{
@@ -60,7 +61,7 @@ export default class Main extends React.Component<IProps, IState>{
     zoomStyle: Array<IZoomStyle>;
     lastUpdateTime: number;
     isInQuest: boolean;
-    clearedSE: boolean;
+    currentlyActiveStatusEffects: string[];
     questStartTime: number;
     secondsElapsed: number;
     constructor(props: IProps) {
@@ -73,8 +74,8 @@ export default class Main extends React.Component<IProps, IState>{
         this.activeMonsterIndex = 0;
         this.lastUpdateTime = 0;
         this.isInQuest = false;
-        // Keeps track of whether or not status effects section needs clearing
-        this.clearedSE = true;
+        // Keeps track of whether or not React Hunter is currently showing any active status effects
+        this.currentlyActiveStatusEffects = [];
         this.questStartTime = 0;
         this.secondsElapsed = 0;
         this.zoomStyle = [
@@ -149,14 +150,13 @@ export default class Main extends React.Component<IProps, IState>{
 
             try {
                 _r = _r.replace(re, "0");
+                this.lastUpdateTime = Date.now();
             } catch (TypeError) {
                 return;
             }
 
             r = JSON.parse(_r);
         }
-
-        //console.log(r.data.player);
 
         if (r.isSuccess) {
             this.setState({
@@ -175,23 +175,20 @@ export default class Main extends React.Component<IProps, IState>{
     // lastUpdateTime tracks the last time data was pushed successfully from Smart Hunter
     doSEInterval = async () => {
         var currentTime = Date.now();
-        if ((currentTime - this.lastUpdateTime) / 1000 > 2) {
-            // More than 2 seconds has elapsed (i.e. more than 4 rerenders or "API updates") since the last time lastUpdateTime was updates so we assume the player is not in a quest
+        if ((currentTime - this.lastUpdateTime) / 1000 > 1) {
+            // More than 1 second has elapsed (i.e. more than 2 rerenders or "API updates") since the last time lastUpdateTime was updated so we assume the player is not in a quest
             // Therefore, we reset state for timers and status effects
             this.isInQuest = false;
             // Temporarily set this to false in case we need to clear currently active status effects timers
-            this.clearedSE = false;
             this.lastUpdateTime = 0;
-            if (StatusEffects.size !== 0) {
-                StatusEffects.clear();
-                // Force a rerender by setting the state
+            if (this.currentlyActiveStatusEffects.length !== 0) {
+                this.currentlyActiveStatusEffects = [];
+                // Player has left the quest but they still have active status effects so we need to force a rerender by setting the state to reset the timers
                 this.setState({
                     apiData: this.state.apiData,
                     preApiData: this.state.preApiData
                 })
-                //console.log("clearedSE: " + this.clearedSE);
             }
-            this.clearedSE = true;
             if (this.questStartTime !== 0) {
                 this.questStartTime = 0;
                 this.secondsElapsed = 0;
@@ -203,13 +200,7 @@ export default class Main extends React.Component<IProps, IState>{
                 this.secondsElapsed = Math.round((Date.now() - this.questStartTime) / 1000);
             }
             this.isInQuest = true;
-            this.clearedSE = true;
         }
-        //console.log("Last update time " + this.lastUpdateTime);
-        
-        console.log("isInQuest: " + this.isInQuest);
-        console.log("Seconds elapsed in quest: " + this.secondsElapsed);
-        //console.log(this.clearedSE)
     }
 
     getStyle = () => {
@@ -390,20 +381,18 @@ export default class Main extends React.Component<IProps, IState>{
                 return null;
             }
             var data = this.state.apiData.player;
-            if (this.clearedSE) {
-                StatusEffects = new Map<string, number>();
-                data.forEach((se: any, index: number) => {
-                    if (se.time !== null) {
-                        StatusEffects.set(se.name, se.time.current);
-                    } 
-                });
-            }
-            const { Countdown } = Statistic;
-            if (this.clearedSE) {
-                this.lastUpdateTime = Date.now();
-            }
+            //StatusEffects = new Map<string, number>();
+            //data.forEach((se: any, index: number) => {
+            //    if (se.time !== null) {
+            //        StatusEffects.set(se.name, se.time.current);
+            //    }
+            //});
             return data.map((se: any, index: number) => {
-                console.log("SE name: " + se.name);
+                if (!se.isVisible) {
+                    return null;
+                } else {
+                    this.currentlyActiveStatusEffects.push(se.name);
+                }
                 // To handle status effects like Mega Demondrug
                 if (se.time === null) {
                     return (
@@ -417,29 +406,26 @@ export default class Main extends React.Component<IProps, IState>{
                     )
                 }
                 else if (Math.round(se.time.current) <= 1) {
+                    if (this.currentlyActiveStatusEffects.includes(se.name)) this.currentlyActiveStatusEffects.splice(this.currentlyActiveStatusEffects.indexOf(se.name), 1);
                     return null;
                 } 
                 else if (se.groupId === "Debuff") {
-                    // <Countdown key={this.isInQuest ? "0" : "1"} value={this.isInQuest ? Date.now() + 1000 * Math.round(se.time.current) : 0} valueStyle={{ color: "red", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }} format="mm:ss" />
-
                     return (
                         <div key={se.name} style={{ height: this.getStyle().seHeight }}>
                            <div style={{ display: "flex" }}>
-                               <div>
-                                    <span style={{ color: "red", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{se.name + " " + ((this.clearedSE) ? getMinutes(Math.round(StatusEffects.get(se.name)!)) + ":" + getSeconds(Math.round(StatusEffects.get(se.name)!)) : "00:00")}</span>
+                                <div>
+                                    <span style={{ color: "red", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{se.name + " " + ((this.isInQuest) ? getMinutes(Math.round(se.time.current)) + ":" + getSeconds(Math.round(se.time.current)) : "00:00")}</span>
                                </div>
                             </div>
                        </div>
                     )
                 }
                 else {
-                    //<Countdown key={this.isInQuest ? "0" : "1"} value={this.isInQuest ? Date.now() + 1000 * Math.round(se.time.current) : 0} valueStyle={{ color: "white", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }} format="mm:ss" />
-
                     return (
                         <div key={se.name} style={{ height: this.getStyle().seHeight }}>
                             <div style={{ display: "flex" }}>
                                 <div>
-                                    <span style={{ color: "white", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{se.name + " " + ((this.clearedSE) ? getMinutes(Math.round(StatusEffects.get(se.name)!)) + ":" + getSeconds(Math.round(StatusEffects.get(se.name)!)) : "00:00")}</span>
+                                    <span style={{ color: "white", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{se.name + " " + ((this.isInQuest) ? getMinutes(Math.round(se.time.current)) + ":" + getSeconds(Math.round(se.time.current)) : "00:00")}</span>
                                 </div>
                             </div>
                         </div>
