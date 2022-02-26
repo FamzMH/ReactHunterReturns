@@ -72,6 +72,7 @@ export default class Main extends React.Component<IProps, IState>{
             zoomLevel: 1
         }
         this.activeMonsterIndex = 0;
+        // Tracks the last time data was pushed successfully from Smart Hunter
         this.lastUpdateTime = 0;
         this.isInQuest = false;
         // Keeps track of whether or not React Hunter is currently showing any active status effects
@@ -172,14 +173,12 @@ export default class Main extends React.Component<IProps, IState>{
 		
     }
 
-    // lastUpdateTime tracks the last time data was pushed successfully from Smart Hunter
     doSEInterval = async () => {
         var currentTime = Date.now();
         if ((currentTime - this.lastUpdateTime) / 1000 > 1) {
             // More than 1 second has elapsed (i.e. more than 2 rerenders or "API updates") since the last time lastUpdateTime was updated so we assume the player is not in a quest
             // Therefore, we reset state for timers and status effects
             this.isInQuest = false;
-            // Temporarily set this to false in case we need to clear currently active status effects timers
             this.lastUpdateTime = 0;
             if (this.currentlyActiveStatusEffects.length !== 0) {
                 this.currentlyActiveStatusEffects = [];
@@ -388,7 +387,9 @@ export default class Main extends React.Component<IProps, IState>{
             //    }
             //});
             return data.map((se: any, index: number) => {
+                if (!this.isInQuest) return null;
                 if (!se.isVisible) {
+                    if (this.currentlyActiveStatusEffects.includes(se.name)) this.currentlyActiveStatusEffects.splice(this.currentlyActiveStatusEffects.indexOf(se.name), 1);
                     return null;
                 } else {
                     this.currentlyActiveStatusEffects.push(se.name);
