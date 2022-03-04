@@ -46,6 +46,7 @@
             this.textBox1.ReadOnly = true;
             this.textBox1.Size = new System.Drawing.Size(759, 431);
             this.textBox1.TabIndex = 0;
+            this.textBox1.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
             // 
             // Form1
             // 

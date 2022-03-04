@@ -43,15 +43,16 @@ function getSeconds(seconds: number) {
 // Reset timers on quest complete (Done?)
 // Fix percents on player damage (calculation and rounding) (Done?)
 // Fix rounding on monster health (Done?)
-// Add numbers to monster parts
+// Add numbers to monster parts (Done?)
 // Add quest timer (Done?)
 // Add more columns to status effects (buffs, mantles, debuffs)
 // Add DPS
 // Clear status effects on death (Done?)
-// Subtract 2 seconds from quest timer on quest complete
-// Add scrollbar to console window
+// Add scrollbar to console window (Done?)
 // Add option to automatically open browser window on start
 // Add option to automatically open game on start
+// Subtract 1 second(?) from quest timer on quest complete
+
 
 
 export default class Main extends React.Component<IProps, IState>{
@@ -208,7 +209,6 @@ export default class Main extends React.Component<IProps, IState>{
 
     render() {
         const MonsterBarColor = '#108ee9';
-        const TeamDamageBarColor = '#FF0000';
         let getMonsterEffect = (data: any) => {
             if (!data) {
                 return null
@@ -247,8 +247,6 @@ export default class Main extends React.Component<IProps, IState>{
             var data = this.state.apiData.monsters as Array<any>;
             var preData = this.state.preApiData.monsters as Array<any>;
             var _temphp = 2;
-            //var _tempIndex = 0;
-            //获得当前正在讨伐的怪物
             if (preData?.length == data?.length &&
                 preData.every((v: any, i: number) => data[i].name == v.name)) {
                 var _t = 0;
@@ -299,9 +297,10 @@ export default class Main extends React.Component<IProps, IState>{
                             <Col span={24}>{getMonsterEffect(m.statusEffects)}</Col>
                             <Col span={24} style={{ height: 10 }}></Col>
                             {m.parts.map((p: any) => {
+                                var timesBrokenCount = p.timesBrokenCount;
                                 return (
                                     <Col key={m.address + p.name} span={6} style={{ textAlign: "center" }}>
-                                        <div>{p.name}</div>
+                                        <div>{timesBrokenCount === 0 ? p.name : p.name + ": " + timesBrokenCount}</div>
                                         <Progress
                                             type="circle"
                                             percent={p.health.fraction * 100}
@@ -341,14 +340,10 @@ export default class Main extends React.Component<IProps, IState>{
                     _tempDamage = m.damage;
                     _tempIndex = index;
                 }
-
-                //PlayerDPS.set(m.name, m.damage);
-            });
-            data.forEach((p: any, index: number) => {
-                teamDamage += p.damage;
+                teamDamage += m.damage;
             });
             return data.map((p: any, index: number) => {
-                if (p.name == "未知玩家") { 
+                if (p.name == "未知玩家") {
                     return null;
                 }
                 else {
@@ -356,7 +351,7 @@ export default class Main extends React.Component<IProps, IState>{
                         <div key={p.name} style={{ height: this.getStyle().teamHeight }}>
                             <div style={{ display: "flex" }}>
                                 <div>
-                                    <span style={{ fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{p.name} {p.damage} { }</span>
+                                    <span style={{ fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{p.name} {p.damage}</span>
                                     {index == _tempIndex ? (<Icon style={{ color: "red", marginLeft: 10, fontSize: this.getStyle().activeTeamIconSize }} type="chrome" spin={true} />) : null}
                                 </div>
                                 <div style={{ flexGrow: 1, textAlign: "right" }}>
@@ -380,14 +375,11 @@ export default class Main extends React.Component<IProps, IState>{
                 return null;
             }
             var data = this.state.apiData.player;
-            //StatusEffects = new Map<string, number>();
-            //data.forEach((se: any, index: number) => {
-            //    if (se.time !== null) {
-            //        StatusEffects.set(se.name, se.time.current);
-            //    }
-            //});
             return data.map((se: any, index: number) => {
-                if (!this.isInQuest) return null;
+                if (!this.isInQuest) {
+                    if (this.currentlyActiveStatusEffects.includes(se.name)) this.currentlyActiveStatusEffects.splice(this.currentlyActiveStatusEffects.indexOf(se.name), 1);
+                    return null;
+                }
                 if (!se.isVisible) {
                     if (this.currentlyActiveStatusEffects.includes(se.name)) this.currentlyActiveStatusEffects.splice(this.currentlyActiveStatusEffects.indexOf(se.name), 1);
                     return null;
@@ -415,7 +407,7 @@ export default class Main extends React.Component<IProps, IState>{
                         <div key={se.name} style={{ height: this.getStyle().seHeight }}>
                            <div style={{ display: "flex" }}>
                                 <div>
-                                    <span style={{ color: "red", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{se.name + " " + ((this.isInQuest) ? getMinutes(Math.round(se.time.current)) + ":" + getSeconds(Math.round(se.time.current)) : "00:00")}</span>
+                                    <span style={{ color: "red", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{se.name + " " + getMinutes(Math.round(se.time.current)) + ":" + getSeconds(Math.round(se.time.current))}</span>
                                </div>
                             </div>
                        </div>
@@ -426,7 +418,7 @@ export default class Main extends React.Component<IProps, IState>{
                         <div key={se.name} style={{ height: this.getStyle().seHeight }}>
                             <div style={{ display: "flex" }}>
                                 <div>
-                                    <span style={{ color: "white", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{se.name + " " + ((this.isInQuest) ? getMinutes(Math.round(se.time.current)) + ":" + getSeconds(Math.round(se.time.current)) : "00:00")}</span>
+                                    <span style={{ color: "white", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{se.name + " " + getMinutes(Math.round(se.time.current)) + ":" + getSeconds(Math.round(se.time.current))}</span>
                                 </div>
                             </div>
                         </div>
