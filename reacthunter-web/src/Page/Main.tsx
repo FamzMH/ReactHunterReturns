@@ -171,7 +171,7 @@ export default class Main extends React.Component<IProps, IState>{
         //        content: "Data Get Failure!"
         //    })
         //}
-		
+
     }
 
     doSEInterval = async () => {
@@ -316,13 +316,13 @@ export default class Main extends React.Component<IProps, IState>{
                 )
             });
             return (
-                <div> 
-                <span style={{ color: "white", fontWeight: "bold", fontSize: "20px", position: "relative", zIndex: 9999 }}>
-                {"Quest timer: " + ((this.secondsElapsed === 0) ? "00:00" : getMinutes(this.secondsElapsed) + ":" + getSeconds(this.secondsElapsed))}
-                </span>
-                <Collapse accordion activeKey={String(this.activeMonsterIndex)}>
-                    {monsterRender}
-                </Collapse>
+                <div>
+                    <span style={{ color: "white", fontWeight: "bold", fontSize: "20px", position: "relative", zIndex: 9999 }}>
+                        {"Quest timer: " + ((this.secondsElapsed === 0) ? "00:00" : getMinutes(this.secondsElapsed) + ":" + getSeconds(this.secondsElapsed))}
+                    </span>
+                    <Collapse accordion activeKey={String(this.activeMonsterIndex)}>
+                        {monsterRender}
+                    </Collapse>
                 </div>
             )
         }
@@ -347,11 +347,13 @@ export default class Main extends React.Component<IProps, IState>{
                     return null;
                 }
                 else {
+                    console.log("Damage: " + p.damage);
+                    console.log("Seconds: " + this.secondsElapsed);
                     return (
                         <div key={p.name} style={{ height: this.getStyle().teamHeight }}>
                             <div style={{ display: "flex" }}>
                                 <div>
-                                    <span style={{ fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{p.name} {p.damage}</span>
+                                    <span style={{ fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{p.name} {p.damage} {p.damage > 0 && this.secondsElapsed > 0 ? "DPS: " + Math.round(p.damage / this.secondsElapsed) + " dmg/s" : ""}</span>
                                     {index == _tempIndex ? (<Icon style={{ color: "red", marginLeft: 10, fontSize: this.getStyle().activeTeamIconSize }} type="chrome" spin={true} />) : null}
                                 </div>
                                 <div style={{ flexGrow: 1, textAlign: "right" }}>
@@ -367,15 +369,16 @@ export default class Main extends React.Component<IProps, IState>{
                         </div>
                     )
                 }
-			});
+            });
         }
 
         let getPlayer = () => {
             if (!this.state.apiData || !this.state.apiData.player) {
                 return null;
             }
-            var data = this.state.apiData.player;
+            var data = this.state.apiData.player
             return data.map((se: any, index: number) => {
+                var isMantle = se.name.includes("Mantle");
                 if (!this.isInQuest) {
                     if (this.currentlyActiveStatusEffects.includes(se.name)) this.currentlyActiveStatusEffects.splice(this.currentlyActiveStatusEffects.indexOf(se.name), 1);
                     return null;
@@ -396,24 +399,36 @@ export default class Main extends React.Component<IProps, IState>{
                                 </div>
                             </div>
                         </div>
-                    )
+                    );
+
                 }
                 else if (Math.round(se.time.current) <= 1) {
                     if (this.currentlyActiveStatusEffects.includes(se.name)) this.currentlyActiveStatusEffects.splice(this.currentlyActiveStatusEffects.indexOf(se.name), 1);
                     return null;
-                } 
+                }
                 else if (se.groupId === "Debuff") {
                     return (
                         <div key={se.name} style={{ height: this.getStyle().seHeight }}>
-                           <div style={{ display: "flex" }}>
+                            <div style={{ display: "flex" }}>
                                 <div>
                                     <span style={{ color: "red", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{se.name + " " + getMinutes(Math.round(se.time.current)) + ":" + getSeconds(Math.round(se.time.current))}</span>
-                               </div>
+                                </div>
                             </div>
-                       </div>
-                    )
-                }
-                else {
+                        </div>
+                    );
+
+                } else if (isMantle) {
+                    return (
+                        <div key={se.name} style={{ height: this.getStyle().seHeight }}>
+                            <div style={{ display: "flex" }}>
+                                <div>
+                                    <span style={{ color: "gold", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{se.name + " " + getMinutes(Math.round(se.time.current)) + ":" + getSeconds(Math.round(se.time.current))}</span>
+                                </div>
+                            </div>
+                        </div>
+                    );
+
+                } else {
                     return (
                         <div key={se.name} style={{ height: this.getStyle().seHeight }}>
                             <div style={{ display: "flex" }}>
@@ -422,7 +437,7 @@ export default class Main extends React.Component<IProps, IState>{
                                 </div>
                             </div>
                         </div>
-                    )
+                    );
                 }
             });
         }
@@ -453,7 +468,7 @@ export default class Main extends React.Component<IProps, IState>{
             <Layout className="layout" style={{ height: "100vh", color: "rgb(255, 255, 255)", background: "rgb(51, 51, 51) none repeat scroll 0% 0%" }}>
                 <Content style={{ padding: '10px', height: "100%" }}>
                     <div style={{ color: "rgb(255, 255, 255)", background: "rgb(51, 51, 51) none repeat scroll 0% 0%", padding: 10, minHeight: "100%" }}>
-                        <div style={{ color: "white", fontWeight: "bold", fontSize: "20px", position: "absolute", margin: "0px 10px", zIndex:9999 }}>
+                        <div style={{ color: "white", fontWeight: "bold", fontSize: "20px", position: "absolute", margin: "0px 10px", zIndex: 9999 }}>
                             React Hunter
                             <ButtonGroup style={{ marginLeft: 20, zIndex: 9999 }}>
                                 <Button type="primary" icon="zoom-in" onClick={e => { onZoomChange(true) }} />
@@ -482,7 +497,7 @@ export default class Main extends React.Component<IProps, IState>{
                         <Row>
                             <Col lg={12} style={{ padding: 10 }}></Col>
                             <Col lg={12} style={{ padding: 10 }}>
-                                
+
                             </Col>
                         </Row>
                     </div>
