@@ -40,18 +40,11 @@ function getSeconds(seconds: number) {
 }
 
 // TODO:
-// Reset timers on quest complete (Done?)
-// Fix percents on player damage (calculation and rounding) (Done?)
-// Fix rounding on monster health (Done?)
-// Add numbers to monster parts (Done?)
-// Add quest timer (Done?)
-// Add more columns to status effects (buffs, mantles, debuffs)
-// Add DPS
-// Clear status effects on death (Done?)
-// Add scrollbar to console window (Done?)
+// Create config window 
 // Add option to automatically open browser window on start
 // Add option to automatically open game on start
 // Subtract 1 second(?) from quest timer on quest complete
+// Show capturable message when monster is low
 
 
 
@@ -353,7 +346,7 @@ export default class Main extends React.Component<IProps, IState>{
                         <div key={p.name} style={{ height: this.getStyle().teamHeight }}>
                             <div style={{ display: "flex" }}>
                                 <div>
-                                    <span style={{ fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{p.name} {p.damage} {p.damage > 0 && this.secondsElapsed > 0 ? "DPS: " + Math.round(p.damage / this.secondsElapsed) + " dmg/s" : ""}</span>
+                                    <span style={{ fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{p.name} {p.damage}</span>
                                     {index == _tempIndex ? (<Icon style={{ color: "red", marginLeft: 10, fontSize: this.getStyle().activeTeamIconSize }} type="chrome" spin={true} />) : null}
                                 </div>
                                 <div style={{ flexGrow: 1, textAlign: "right" }}>
