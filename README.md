@@ -19,7 +19,7 @@ Once NPM is installed, open the project in Visual Studio 2019. The project file 
 In VS 2019, goto Project -> Manage NuGet Packages... -> Browse and browse for and install:
   - Nancy v2.0.0 by Andreas Håkansson
   - Nancy.Hosting.Self v2.0.0 by Andreas Håkansson
-  - Netwonsoft.Json v12.0.3 by James Newton-King 
+  - Netwonsoft.Json v13.0.1 by James Newton-King 
 
 ## 6. Change the dropdown from "Any CPU" to "x64" 
 In the VS 2019 toolbar change the dropdown on the right from "Any CPU" to "x64" if "Any CPU" is selected.
@@ -28,4 +28,4 @@ In the VS 2019 toolbar change the dropdown on the right from "Any CPU" to "x64" 
 In VS 2019, go back to the dropdown in the previous step and open the Configuration Manager, on the ReactHunter row change the Platform column to x64.
 
 ## 8. Run
-Hit "Run" in the top toolbar (VS 2019 may prompt to restart as admin, accept and hit "Run" again after the restart) and wait for VS to finishing building the project. If the React Hunter console window complains about anything (e.g. pattern scanning failing) you most likely didn't complete step 4 properly.
+Hit "Run" in the top toolbar (VS 2019 may prompt to restart as admin, accept and hit "Run" again after the restart) and wait for VS to finish building the project. If the React Hunter console window complains about anything (e.g. pattern scanning failing) you most likely didn't complete step 4 properly.
