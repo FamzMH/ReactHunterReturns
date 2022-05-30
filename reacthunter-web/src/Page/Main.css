@@ -2,6 +2,14 @@
     padding:0px !important;
 }
 
+.ant-collapse-content {
+	background-color:transparent
+}
+
+.ant-collapse {
+	background-color: transparent;
+}
+
 .ant-card-grid {
 	box-shadow: 0px 0px #000000;
 	-webkit-box-shadow: 0px 0px #000000;
@@ -18,6 +26,5 @@
 }
 
 div {
-	background: none repeat scroll 0 0 #333333;
 	color: white;
 }

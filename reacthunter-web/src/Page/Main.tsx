@@ -1,9 +1,9 @@
 import React from 'react';
-import { Layout, Menu, Breadcrumb, message, Progress, Divider, Icon, Row, Col, Collapse, Statistic, Card, Button } from 'antd';
+import { Layout, Progress, Divider, Icon, Row, Col, Collapse, Card, Button } from 'antd';
 import * as Api from './MainService';
 import './Main.css'
 import Config from '../Config';
-const { Header, Content, Footer } = Layout;
+const { Content } = Layout;
 const { Panel } = Collapse;
 const ButtonGroup = Button.Group;
 interface IProps {
@@ -13,6 +13,8 @@ interface IState {
     apiData: any;
     preApiData: any;
     zoomLevel: number;
+    imagePath: string;
+    imageHash: any
 }
 interface IZoomStyle {
     defaultFontSize: number;
@@ -24,10 +26,14 @@ interface IZoomStyle {
     seHeight: number;
 }
 
-let PlayerDPS = new Map<string, number>();
-
 function getMinutes(seconds: number) {
     return Math.floor(seconds / 60);
+}
+
+function processMinutes(seconds: number) {
+    var minute = getMinutes(seconds);
+    if (minute < 10) return "0" + String(minute)
+    return minute
 }
 
 function getSeconds(seconds: number) {
@@ -38,14 +44,6 @@ function getSeconds(seconds: number) {
     }
     return answer;
 }
-
-// TODO:
-// Create config window 
-// Add option to automatically open browser window on start
-// Add option to automatically open game on start
-// Subtract 1 second(?) from quest timer on quest complete
-// Show capturable message when monster is low
-
 
 
 export default class Main extends React.Component<IProps, IState>{
@@ -63,7 +61,9 @@ export default class Main extends React.Component<IProps, IState>{
         this.state = {
             apiData: {},
             preApiData: {},
-            zoomLevel: 1
+            zoomLevel: 1,
+            imagePath: "../../public/background.jpeg",
+            imageHash: Date.now()
         }
         this.activeMonsterIndex = 0;
         // Tracks the last time data was pushed successfully from Smart Hunter
@@ -159,12 +159,6 @@ export default class Main extends React.Component<IProps, IState>{
                 preApiData: this.state.apiData
             })
         }
-        //else {
-        //    message.error({
-        //        content: "Data Get Failure!"
-        //    })
-        //}
-
     }
 
     doSEInterval = async () => {
@@ -179,7 +173,7 @@ export default class Main extends React.Component<IProps, IState>{
                 // Player has left the quest but they still have active status effects so we need to force a rerender by setting the state to reset the timers
                 this.setState({
                     apiData: this.state.apiData,
-                    preApiData: this.state.preApiData
+                    preApiData: this.state.preApiData,
                 })
             }
             if (this.questStartTime !== 0) {
@@ -311,7 +305,7 @@ export default class Main extends React.Component<IProps, IState>{
             return (
                 <div>
                     <span style={{ color: "white", fontWeight: "bold", fontSize: "20px", position: "relative", zIndex: 9999 }}>
-                        {"Quest timer: " + ((this.secondsElapsed === 0) ? "00:00" : getMinutes(this.secondsElapsed) + ":" + getSeconds(this.secondsElapsed))}
+                        {"Quest timer: " + ((this.secondsElapsed === 0) ? "00:00" : processMinutes(this.secondsElapsed) + ":" + getSeconds(this.secondsElapsed))}
                     </span>
                     <Collapse accordion activeKey={String(this.activeMonsterIndex)}>
                         {monsterRender}
@@ -340,8 +334,6 @@ export default class Main extends React.Component<IProps, IState>{
                     return null;
                 }
                 else {
-                    console.log("Damage: " + p.damage);
-                    console.log("Seconds: " + this.secondsElapsed);
                     return (
                         <div key={p.name} style={{ height: this.getStyle().teamHeight }}>
                             <div style={{ display: "flex" }}>
@@ -435,10 +427,6 @@ export default class Main extends React.Component<IProps, IState>{
             });
         }
 
-        let defaultFont = {
-            fontSize: 10
-        }
-
         let onZoomChange = (isZoomIn: boolean) => {
             if (isZoomIn) {
                 if (this.state.zoomLevel >= this.zoomStyle.length - 1) {
@@ -456,11 +444,20 @@ export default class Main extends React.Component<IProps, IState>{
                     zoomLevel: this.state.zoomLevel - 1
                 })
             }
+            
         }
         return (
-            <Layout className="layout" style={{ height: "100vh", color: "rgb(255, 255, 255)", background: "rgb(51, 51, 51) none repeat scroll 0% 0%" }}>
+            <Layout className="layout" style={{
+                height: "100vh",
+                color: "rgb(255, 255, 255)",
+                backgroundImage: `url(${this.state.imagePath}?${this.state.imageHash})`,
+                backgroundPosition: 'center',
+                backgroundSize: 'cover',
+                backgroundRepeat: 'no-repeat',
+                width: '100vw',
+            }}>
                 <Content style={{ padding: '10px', height: "100%" }}>
-                    <div style={{ color: "rgb(255, 255, 255)", background: "rgb(51, 51, 51) none repeat scroll 0% 0%", padding: 10, minHeight: "100%" }}>
+                    <div style={{ color: "rgb(255, 255, 255)", padding: 10, minHeight: "100%" }}>
                         <div style={{ color: "white", fontWeight: "bold", fontSize: "20px", position: "absolute", margin: "0px 10px", zIndex: 9999 }}>
                             React Hunter
                             <ButtonGroup style={{ marginLeft: 20, zIndex: 9999 }}>
@@ -472,19 +469,18 @@ export default class Main extends React.Component<IProps, IState>{
                             <Col lg={12} style={{ padding: 10 }}>
                                 <Divider orientation="right" style={{ color: 'white' }}>Monster</Divider>
                                 <div>
-
-                                    {getMonsters()}
-                                </div>
+                                        {getMonsters()}
+                                    </div>
                             </Col>
                             <Col lg={12} style={{ padding: 10 }}>
                                 <Divider orientation="right" style={{ color: 'white' }}>Team Damage</Divider>
                                 <div>
-                                    {getTeam()}
-                                </div>
+                                        {getTeam()}
+                                    </div>
                                 <Divider orientation="right" style={{ color: 'white' }}>Status Effects</Divider>
                                 <div>
-                                    {getPlayer()}
-                                </div>
+                                        {getPlayer()}
+                                    </div>
                             </Col>
                         </Row>
                         <Row>
