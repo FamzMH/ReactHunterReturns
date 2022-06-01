@@ -1,5 +1,6 @@
 # React Hunter Returns
 A project to bring back the OG React Hunter https://github.com/Lenshang/ReactHunter.
+
 Nexus Mods page: https://www.nexusmods.com/monsterhunterworld/mods/6064
 
 # Building React Hunter
