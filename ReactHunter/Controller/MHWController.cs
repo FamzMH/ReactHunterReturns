@@ -1,38 +1,51 @@
 ﻿using Nancy;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+using ReactHunter.Capture;
 using SmartHunter.Game.Data.ViewModels;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ReactHunter.Controller
 {
     public class MHWController : NancyModule
     {
-        public MHWController()
+
+        public MHWController(CapturableMonstersFactory capturableMonstersFactory)
         {
+
+
             Get("/", x => {
-                return View["Web/index.html"];
-            });
+                    return View["Web/index.html"];
+                });
             Get("/get", x => {
                 var teams = OverlayViewModel.Instance.TeamWidget.Context.Players.ToArray();
                 var monsters = OverlayViewModel.Instance.MonsterWidget.Context.Monsters.ToArray();
                 var player = OverlayViewModel.Instance.PlayerWidget.Context.StatusEffects.ToArray();
 
+                var capturableMonsters = capturableMonstersFactory.GetCapturableMonsters(monsters).ToArray();
 
-                return Response.AsJson(new
+                var jsonSettings = new JsonSerializerSettings
+                {
+                    ContractResolver = new CamelCasePropertyNamesContractResolver()
+                };
+
+                var response = JsonConvert.SerializeObject(new
                 {
                     isSuccess = true,
                     date = DateTime.Now.ToString(),
                     data = new
                     {
                         players = teams,
-                        monsters = monsters,
-                        player = player
+                        monsters = capturableMonsters,
+                        player
                     }
-                });
+                }, jsonSettings);
+                    
+
+                return Response.AsJson(response);
             });
         }
+
     }
 }

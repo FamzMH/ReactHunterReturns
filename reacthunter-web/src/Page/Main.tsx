@@ -138,26 +138,22 @@ export default class Main extends React.Component<IProps, IState>{
     doInterval = async () => {
         let _r = await Api.GetData();
         let r = _r;
-
         if (!Config.fakeApi) {
-            var find = "NaN";
-            var re = new RegExp(find, 'g');
-
-            try {
-                _r = _r.replace(re, "0");
-                this.lastUpdateTime = Date.now();
-            } catch (TypeError) {
-                return;
-            }
-
             r = JSON.parse(_r);
+
         }
 
         if (r.isSuccess) {
             this.setState({
                 apiData: r.data,
                 preApiData: this.state.apiData
-            })
+            });
+
+            if (this.state.apiData.monsters.length > 0) {
+                this.lastUpdateTime = Date.now();
+            }
+        } else {
+            console.log(JSON.parse(r.data));
         }
     }
 
@@ -196,6 +192,7 @@ export default class Main extends React.Component<IProps, IState>{
 
     render() {
         const MonsterBarColor = '#108ee9';
+        const CapturableColour = "#BF40BF";
         let getMonsterEffect = (data: any) => {
             if (!data) {
                 return null
@@ -224,6 +221,16 @@ export default class Main extends React.Component<IProps, IState>{
             }
             else if (data.crown == 1) {
                 return (<Icon type="smile" theme="twoTone" twoToneColor="darkgoldenrod" />)
+            }
+        }
+
+        let isCapturable = (monster: any) => {
+            return monster.canBeCaptured && (monster.health.fraction * 100) < monster.capturePercent;
+        }
+
+        let getCapturable = (monster: any) => {
+            if (isCapturable(monster)) {
+                return (<Icon type="copyright" theme="twoTone" twoToneColor={CapturableColour} />)
             }
         }
 
@@ -265,7 +272,7 @@ export default class Main extends React.Component<IProps, IState>{
                     <Panel showArrow={false} key={String(index)} header={(
                         <div style={{ height: index == this.activeMonsterIndex ? this.getStyle().teamHeight - 20 : this.getStyle().teamHeight - 25 }}>
                             <div style={{ display: "flex" }}>
-                                <span style={fontStyle}>{m.name} ({Math.round(m.health.current)}/{m.health.max})  {getMonsterCrown(m)}</span>
+                                <span style={fontStyle}>{m.name} ({Math.round(m.health.current)}/{m.health.max})  {getMonsterCrown(m)} {getCapturable(m)}</span>
                                 <div style={{ flexGrow: 1, textAlign: "right" }}>
                                     <span style={{ color: "white", fontWeight: "bold", fontSize: this.getStyle().defaultFontSize }}>{Math.round(m.health.fraction * 100)}%</span>
                                 </div>
@@ -274,7 +281,7 @@ export default class Main extends React.Component<IProps, IState>{
                             <Progress
                                 strokeWidth={index == this.activeMonsterIndex ? this.getStyle().activeProgressWidth : this.getStyle().defaultProgressWidth}
                                 status="active"
-                                strokeColor={index == this.activeMonsterIndex ? "#FF0000" : MonsterBarColor}
+                                strokeColor={index == this.activeMonsterIndex ? (isCapturable(m) ? CapturableColour : "red") : MonsterBarColor}
                                 percent={m.health.fraction * 100}
                                 showInfo={false}
                             />
@@ -305,7 +312,7 @@ export default class Main extends React.Component<IProps, IState>{
             return (
                 <div>
                     <span style={{ color: "white", fontWeight: "bold", fontSize: "20px", position: "relative", zIndex: 9999 }}>
-                        {"Quest timer: " + ((this.secondsElapsed === 0) ? "00:00" : processMinutes(this.secondsElapsed) + ":" + getSeconds(this.secondsElapsed))}
+                        {this.isInQuest ? "Quest timer: " + processMinutes(this.secondsElapsed) + ":" + getSeconds(this.secondsElapsed) : ""}
                     </span>
                     <Collapse accordion activeKey={String(this.activeMonsterIndex)}>
                         {monsterRender}
