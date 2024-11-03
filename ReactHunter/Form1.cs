@@ -20,6 +20,8 @@ namespace ReactHunter
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            this.Text = "React Hunter Returns";
+
             Console.SetOut(new TextBoxWriter(this.textBox1));
 
             DummyApplication = new DummyWPFApplication(this);
