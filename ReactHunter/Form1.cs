@@ -11,7 +11,7 @@ namespace ReactHunter
     public partial class Form1 : Form
     {
 
-        private DummyWPFApplication DummyApplication;
+        private DummyApplication Dummy;
 
         public Form1()
         {
@@ -24,7 +24,7 @@ namespace ReactHunter
 
             Console.SetOut(new TextBoxWriter(this.textBox1));
 
-            DummyApplication = new DummyWPFApplication(this);
+            Dummy = new DummyApplication(this);
         }
 
         private async void Form1_Shown(object sender, EventArgs e)
@@ -42,14 +42,14 @@ namespace ReactHunter
 
             var m_MemoryUpdater = new MhwMemoryUpdater();
 
-            DummyApplication.InitialiseDummy();
+            Dummy.Initialise();
 
             NancyInitialiser.InitialiseNancy();
         }
 
         private void Form1_Closing(object sender, FormClosingEventArgs e)
         {
-            DummyApplication.ShutdownDummy();
+            Dummy.Shutdown();
         }
 
     }
